@@ -16,6 +16,7 @@ import {
 } from './src/store.js';
 import { generateJobs, recoverStaleJobs } from './src/generateJobs.js';
 import { runWithModel, listModels } from './src/openrouter.js';
+import { getUsageStats } from './src/usageTracker.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -344,6 +345,15 @@ app.delete('/api/documents/:id', (req, res) => {
   const ok = deleteDocument(req.params.id);
   if (!ok) return res.status(404).json({ error: 'Документ не найден' });
   res.json({ ok: true });
+});
+
+/** Статистика расхода токенов (страница /usege, без публичных ссылок) */
+app.get('/api/usage', (req, res) => {
+  res.json(getUsageStats());
+});
+
+app.get('/usege', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'usege', 'index.html'));
 });
 
 app.listen(PORT, () => {

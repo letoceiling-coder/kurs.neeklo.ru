@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Расход токенов</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e8eaed;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    h1 { font-size: 1.5rem; font-weight: 600; margin: 0 0 0.25rem; }
+    .meta { color: #9aa0a6; font-size: 0.875rem; margin-bottom: 2rem; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background: #1a1d26;
+      border: 1px solid #2d3139;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+    }
+    .card-label { font-size: 0.75rem; color: #9aa0a6; text-transform: uppercase; letter-spacing: 0.04em; }
+    .card-value { font-size: 1.75rem; font-weight: 700; margin-top: 0.35rem; font-variant-numeric: tabular-nums; }
+    section { margin-bottom: 2.5rem; }
+    section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 1rem; color: #bdc1c6; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      background: #1a1d26;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #2d3139;
+    }
+    th, td { padding: 0.65rem 1rem; text-align: left; border-bottom: 1px solid #2d3139; }
+    th { background: #22262f; color: #9aa0a6; font-weight: 500; font-size: 0.75rem; text-transform: uppercase; }
+    tr:last-child td { border-bottom: none; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .model-name { font-family: ui-monospace, monospace; font-size: 0.8125rem; word-break: break-all; }
+    .err { color: #f28b82; padding: 1rem; background: #3c1f1f; border-radius: 8px; }
+    .empty { color: #9aa0a6; font-style: italic; }
+    .refresh { margin-left: 1rem; font-size: 0.8125rem; color: #8ab4f8; cursor: pointer; background: none; border: none; }
+    .refresh:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Расход токенов OpenRouter</h1>
+    <p class="meta" id="meta">Загрузка…</p>
+
+    <div class="cards" id="cards"></div>
+
+    <section>
+      <h2>По моделям</h2>
+      <div id="byModel"></div>
+    </section>
+
+    <section>
+      <h2>По проектам</h2>
+      <div id="byProject"></div>
+    </section>
+
+    <section>
+      <h2>По дням</h2>
+      <div id="byDay"></div>
+    </section>
+
+    <section>
+      <h2>Последние запросы</h2>
+      <div id="recent"></div>
+    </section>
+  </div>
+  <script>
+    function fmt(n) {
+      return (n ?? 0).toLocaleString('ru-RU');
+    }
+
+    function table(headers, rows, emptyMsg) {
+      if (!rows.length) return '<p class="empty">' + emptyMsg + '</p>';
+      let h = '<table><thead><tr>';
+      headers.forEach((x) => { h += '<th>' + x + '</th>'; });
+      h += '</tr></thead><tbody>';
+      rows.forEach((r) => {
+        h += '<tr>';
+        r.forEach((c, i) => {
+          const cls = i > 0 ? ' class="num"' : '';
+          h += '<td' + cls + '>' + c + '</td>';
+        });
+        h += '</tr>';
+      });
+      return h + '</tbody></table>';
+    }
+
+    function render(data) {
+      const t = data.totals || {};
+      document.getElementById('meta').innerHTML =
+        'Проект: <strong>' + (data.project || '—') + '</strong>'
+        + ' · Обновлено: ' + (data.updatedAt ? new Date(data.updatedAt).toLocaleString('ru-RU') : '—')
+        + '<button type="button" class="refresh" id="btnRefresh">Обновить</button>';
+
+      document.getElementById('cards').innerHTML = [
+        ['Запросов', fmt(t.requests)],
+        ['Prompt', fmt(t.promptTokens)],
+        ['Completion', fmt(t.completionTokens)],
+        ['Всего токенов', fmt(t.totalTokens)],
+        ['Cost (USD)', t.cost ? t.cost.toFixed(4) : '—'],
+      ].map(([l, v]) =>
+        '<div class="card"><div class="card-label">' + l + '</div><div class="card-value">' + v + '</div></div>'
+      ).join('');
+
+      document.getElementById('byModel').innerHTML = table(
+        ['Модель', 'Запросов', 'Prompt', 'Completion', 'Всего'],
+        (data.byModel || []).map((r) => [
+          '<span class="model-name">' + r.key + '</span>',
+          fmt(r.requests), fmt(r.promptTokens), fmt(r.completionTokens), fmt(r.totalTokens),
+        ]),
+        'Пока нет данных по моделям'
+      );
+
+      document.getElementById('byProject').innerHTML = table(
+        ['Проект', 'Запросов', 'Prompt', 'Completion', 'Всего'],
+        (data.byProject || []).map((r) => [
+          r.key, fmt(r.requests), fmt(r.promptTokens), fmt(r.completionTokens), fmt(r.totalTokens),
+        ]),
+        'Пока нет данных по проектам'
+      );
+
+      document.getElementById('byDay').innerHTML = table(
+        ['День', 'Запросов', 'Prompt', 'Completion', 'Всего'],
+        (data.byDay || []).map((r) => [
+          r.key, fmt(r.requests), fmt(r.promptTokens), fmt(r.completionTokens), fmt(r.totalTokens),
+        ]),
+        'Пока нет данных по дням'
+      );
+
+      document.getElementById('recent').innerHTML = table(
+        ['Время', 'Модель', 'Проект', 'Prompt', 'Completion', 'Всего'],
+        (data.recent || []).slice(0, 100).map((r) => [
+          new Date(r.at).toLocaleString('ru-RU'),
+          '<span class="model-name">' + r.model + '</span>',
+          r.project,
+          fmt(r.promptTokens), fmt(r.completionTokens), fmt(r.totalTokens),
+        ]),
+        'Запросов пока не было'
+      );
+
+      document.getElementById('btnRefresh').onclick = load;
+    }
+
+    async function load() {
+      try {
+        const res = await fetch('/api/usage');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        render(await res.json());
+      } catch (e) {
+        document.getElementById('meta').innerHTML = '<span class="err">' + e.message + '</span>';
+      }
+    }
+
+    load();
+    setInterval(load, 60000);
+  </script>
+</body>
+</html>

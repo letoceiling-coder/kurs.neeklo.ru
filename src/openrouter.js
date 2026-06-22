@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { resolveModelSlug, DEFAULT_MODEL_ID, listModels } from './models.js';
+import { recordUsage } from './usageTracker.js';
 
 const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -72,6 +73,11 @@ export async function chat(messages, opts = {}) {
       }
 
       const data = await res.json();
+      if (data?.usage) {
+        try {
+          recordUsage({ model: data.model || model, usage: data.usage });
+        } catch { /* stats must not break generation */ }
+      }
       const content = data?.choices?.[0]?.message?.content;
       const finish = data?.choices?.[0]?.finish_reason;
       if (!content || !String(content).trim()) {
