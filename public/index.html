@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Диплом ИИ — академические работы по ГОСТ за 10 минут</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ФОН -->
+  <div class="bg-orbs" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <!-- ШАПКА -->
+  <header class="topbar">
+    <div class="brand" id="navHome" role="button" tabindex="0" title="На главную">
+      <div class="brand-mark">Д</div>
+      <div class="brand-text">Диплом<span>ИИ</span></div>
+    </div>
+    <nav class="topnav">
+      <a href="#" id="navHow">Как работает</a>
+      <a href="#" id="navFeatures">Возможности</a>
+      <a href="#" id="navDocs">Мои документы</a>
+    </nav>
+    <div class="topbar-badge" id="topbarModelBadge">DeepSeek V4 • OpenRouter</div>
+  </header>
+
+  <div class="gen-banner" id="genBanner" hidden>
+    <div class="gen-banner-inner">
+      <span class="gen-banner-dot" aria-hidden="true"></span>
+      <span class="gen-banner-text">Идёт генерация — <strong id="genBannerPct">0%</strong></span>
+      <span class="gen-banner-msg" id="genBannerMsg">Подготовка…</span>
+      <button type="button" class="gen-banner-link" id="genBannerReturn">Вернуться к прогрессу</button>
+    </div>
+  </div>
+
+  <main id="app">
+
+    <!-- ЭКРАН 1: ВВОД ТЕМЫ -->
+    <section class="view view-hero active" id="view-input">
+      <div class="hero-inner">
+        <div class="pill">
+          <span class="dot"></span> Соответствие ГОСТ • Реальные источники • Без следов ИИ
+        </div>
+        <h1 class="hero-title">
+          Готовая работа<br/>
+          <span class="grad">за 10 минут</span>
+        </h1>
+        <p class="hero-sub">
+          Введите тему — получите дипломную, курсовую или реферат, оформленные по ГОСТ:
+          титульный лист, содержание, главы, заключение и список реальных источников.
+          С встроенным редактором и экспортом в Word и PDF с полным оформлением.
+        </p>
+
+        <div class="composer">
+          <div class="composer-models">
+            <span class="composer-label-inline">Модель ИИ</span>
+            <div class="composer-types model-chips" id="modelChips">
+              <button type="button" class="chip model-chip active" data-id="deepseek-v4">DeepSeek V4</button>
+              <button type="button" class="chip model-chip" data-id="gemini-3-pro">Gemini 3.1 Pro</button>
+            </div>
+          </div>
+
+          <div class="composer-types" id="typeChips"></div>
+
+          <label class="composer-label" for="topicInput">
+            Тема работы <span class="req">обязательно</span>
+          </label>
+          <textarea id="topicInput" class="composer-input" rows="2"
+            placeholder="Например: Разработка автоматизированной системы учёта клиентов на предприятии малого бизнеса"></textarea>
+          <p class="composer-hint">
+            Достаточно указать тему — система сама подберёт структуру, найдёт предприятие на rusprofile.ru и audit-it.ru,
+            соберёт источники и оформит работу по ГОСТ. Поля ниже — по желанию.
+          </p>
+
+          <div class="composer-bottom">
+            <button class="link-toggle" id="metaToggle" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              Данные для титульного листа — укажите ФИО и руководителя
+            </button>
+            <button class="btn-primary" id="startBtn" type="button">
+              Создать работу
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+
+          <div class="meta-grid" id="metaGrid" hidden>
+            <label class="meta-full">Шаблон титульного листа
+              <select id="m_template">
+                <option value="synergy">Загрузка…</option>
+              </select>
+            </label>
+            <label class="meta-full">Объект исследования — название предприятия (необязательно)
+              <input id="m_company" placeholder="Если пусто — система найдёт компанию через rusprofile.ru и audit-it.ru" />
+            </label>
+            <label class="meta-full">Ссылки на карточку (только если нужно указать вручную)
+              <textarea id="m_company_urls" class="composer-input" rows="2"
+                placeholder="Обычно не нужно — поиск выполняется автоматически"></textarea>
+            </label>
+            <label>Учебное заведение<input id="m_university" placeholder="Университет..." /></label>
+            <label>Факультет<input id="m_faculty" placeholder="Факультет..." /></label>
+            <label>Кафедра<input id="m_department" placeholder="Кафедра..." /></label>
+            <label>ФИО студента<input id="m_author" placeholder="Иванов И. И." /></label>
+            <label>Группа<input id="m_group" placeholder="Группа..." /></label>
+            <label>Руководитель<input id="m_supervisor" placeholder="к.э.н., доцент Петров П. П." /></label>
+            <label>Город<input id="m_city" placeholder="Москва" /></label>
+            <label>Год<input id="m_year" placeholder="2026" /></label>
+          </div>
+        </div>
+
+        <div class="trust-row">
+          <div class="trust"><b>250+</b><span>вузов и методичек</span></div>
+          <div class="trust"><b>ГОСТ Р 7.0.100</b><span>оформление источников</span></div>
+          <div class="trust"><b>Times New Roman 14</b><span>интервал 1,5</span></div>
+        </div>
+      </div>
+
+      <section class="how" id="how">
+        <h2 class="section-h">Три шага до готовой работы</h2>
+        <div class="steps">
+          <div class="step"><div class="step-n">01</div><h3>Вводите тему</h3><p>Указываете тему и тип работы. ИИ формирует структуру по требованиям вуза.</p></div>
+          <div class="step"><div class="step-n">02</div><h3>Проверяете план</h3><p>Смотрите содержание: главы, параграфы, цель и задачи. Меняете при необходимости.</p></div>
+          <div class="step"><div class="step-n">03</div><h3>Получаете работу</h3><p>Полный текст с источниками, редактор и экспорт в Word и PDF.</p></div>
+        </div>
+      </section>
+
+      <section class="features" id="features">
+        <h2 class="section-h">Почему результат как у научного руководителя</h2>
+        <div class="feature-grid">
+          <div class="fcard"><div class="fic">📚</div><h3>Реальные источники</h3><p>Учебники ЭБС Юрайт и Литрес, законы, статьи и статистика 2021–2026 гг. Без выдуманных авторов.</p></div>
+          <div class="fcard"><div class="fic">📐</div><h3>Строго по ГОСТ</h3><p>Поля 30/10/20/20 мм, Times New Roman 14, интервал 1,5, нумерация, оформление таблиц.</p></div>
+          <div class="fcard"><div class="fic">🧩</div><h3>Логичная структура</h3><p>Введение, 3 главы с выводами, заключение — связный текст от начала до конца.</p></div>
+          <div class="fcard"><div class="fic">✍️</div><h3>Встроенный редактор</h3><p>Редактируйте любой фрагмент прямо в браузере и сразу выгружайте документ.</p></div>
+          <div class="fcard"><div class="fic">🛡️</div><h3>Без следов ИИ</h3><p>Академический стиль без штампов нейросетей, маркеров и служебных символов.</p></div>
+          <div class="fcard"><div class="fic">⚡</div><h3>На движке DeepSeek V4</h3><p>Быстрая генерация полноценной работы за считанные минуты.</p></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ЭКРАН 2: ПЛАН -->
+    <section class="view view-plan" id="view-plan">
+      <div class="plan-wrap">
+        <button class="back-link" id="planBack">← Изменить тему</button>
+        <h2 class="plan-title">Проверьте содержание</h2>
+        <p class="plan-sub">ИИ предложил структуру работы. Отредактируйте при необходимости и запустите генерацию.</p>
+        <div class="plan-model-row">
+          <span class="composer-label-inline">Модель ИИ</span>
+          <div class="composer-types" id="planModelChips"></div>
+        </div>
+        <div class="plan-card" id="planCard">
+          <!-- заполняется JS -->
+        </div>
+        <div class="plan-actions">
+          <button class="btn-ghost" id="regenPlan" type="button">Сгенерировать другой план</button>
+          <button class="btn-primary" id="genFullBtn" type="button">
+            Сгенерировать полный текст
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЭКРАН 3: ГЕНЕРАЦИЯ -->
+    <section class="view view-loading" id="view-loading">
+      <div class="loader-card">
+        <div class="loader-ring"><svg viewBox="0 0 100 100"><circle class="ring-bg" cx="50" cy="50" r="44"/><circle class="ring-fg" id="ringFg" cx="50" cy="50" r="44"/></svg><div class="loader-pct" id="loaderPct">0%</div></div>
+        <h2 class="loader-title" id="loaderTitle">Готовим работу…</h2>
+        <p class="loader-msg" id="loaderMsg">Подключаемся к выбранной модели… Можно обновить страницу — генерация продолжится на сервере.</p>
+        <ul class="loader-log" id="loaderLog"></ul>
+      </div>
+    </section>
+
+    <!-- ЭКРАН: МОИ ДОКУМЕНТЫ -->
+    <section class="view view-docs" id="view-docs">
+      <div class="docs-wrap">
+        <button class="back-link" id="docsBack">← На главную</button>
+        <h2 class="plan-title">Мои документы</h2>
+        <p class="plan-sub">Все созданные работы сохраняются здесь. Откройте для редактирования или скачайте заново.</p>
+        <div class="docs-list" id="docsList"></div>
+      </div>
+    </section>
+
+    <!-- ЭКРАН 4: РЕДАКТОР -->
+    <section class="view view-editor" id="view-editor">
+      <div class="editor-topbar">
+        <button class="back-link" id="editorBack">← Новая работа</button>
+        <div class="editor-toolbar" id="toolbar">
+          <button data-cmd="bold" title="Полужирный"><b>Ж</b></button>
+          <button data-cmd="italic" title="Курсив"><i>К</i></button>
+          <button data-cmd="underline" title="Подчёркнутый"><u>Ч</u></button>
+          <span class="tb-sep"></span>
+          <button data-block="h1" title="Заголовок главы">H1</button>
+          <button data-block="h2" title="Подзаголовок">H2</button>
+          <button data-block="p" title="Обычный текст">¶</button>
+          <span class="tb-sep"></span>
+          <button data-cmd="insertUnorderedList" title="Список">•</button>
+          <button data-cmd="undo" title="Отменить">↺</button>
+          <button data-cmd="redo" title="Повторить">↻</button>
+        </div>
+        <div class="editor-actions">
+          <button class="btn-ghost sm" id="saveBtn" type="button">Сохранить</button>
+          <button class="btn-ghost sm" id="previewBtn" type="button">Предпросмотр</button>
+          <button class="btn-ghost sm" id="pdfBtn" type="button">Скачать PDF</button>
+          <button class="btn-primary sm" id="docxBtn" type="button">
+            Скачать Word
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="editor-stage">
+        <div class="paper" id="paper" contenteditable="true" spellcheck="false"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js?v=20250622"></script>
+</body>
+</html>
