@@ -5,6 +5,8 @@ import {
 } from 'docx';
 import { getWorkLabel, resolveDocumentMeta } from './templates.js';
 import { numberBlocks, formatTableCaption, formatFigureCaption } from './gostNumbering.js';
+import { buildTableBlock } from './docxTableBuilder.js';
+import { validateDocxStructure, autoFixTables } from './tableValidator.js';
 
 const FONT = 'Times New Roman';
 const SIZE_MAIN = 28;   // 14pt (half-points)
@@ -57,50 +59,8 @@ function refParagraph(text) {
 }
 
 function tableBlock(block) {
-  const out = [];
-  out.push(new Paragraph({
-    alignment: AlignmentType.LEFT,
-    spacing: { line: LINE_1, before: 120, after: 60 },
-    children: [new TextRun({ text: formatTableCaption(block), font: FONT, size: SIZE_MAIN, bold: true })],
-  }));
-
-  const rows = block.rows || [];
-  if (!rows.length) return out;
-  const colCount = Math.max(...rows.map((r) => r.length));
-  const border = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
-  const borders = { top: border, bottom: border, left: border, right: border };
-  const innerBorders = { top: border, bottom: border, left: border, right: border };
-
-  const tableRows = rows.map((cells, rIdx) => new TableRow({
-    tableHeader: rIdx === 0,
-    children: Array.from({ length: colCount }).map((_, cIdx) => {
-      const cellText = String(cells[cIdx] || '').trim();
-      const fontSize = rIdx === 0 ? 22 : 22;
-      return new TableCell({
-        borders: innerBorders,
-        margins: { top: 60, bottom: 60, left: 100, right: 100 },
-        verticalAlign: 'center',
-        shading: rIdx === 0 ? { fill: 'F0F0F0' } : undefined,
-        children: [new Paragraph({
-          alignment: rIdx === 0 ? AlignmentType.CENTER : AlignmentType.LEFT,
-          spacing: { line: LINE_1, after: 0 },
-          children: [new TextRun({
-            text: cellText,
-            font: FONT,
-            size: fontSize,
-            bold: rIdx === 0,
-          })],
-        })],
-      });
-    }),
-  }));
-
-  out.push(new Table({
-    width: { size: 95, type: WidthType.PERCENTAGE },
-    rows: tableRows,
-  }));
-  out.push(new Paragraph({ spacing: { after: 120 }, children: [] }));
-  return out;
+  const num = block.gostTable || block.number || 0;
+  return buildTableBlock(num, block);
 }
 
 function figureBlock(block) {

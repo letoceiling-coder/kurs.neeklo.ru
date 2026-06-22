@@ -1211,6 +1211,22 @@ export async function generateDocument(params, onProgress = () => {}) {
 
   emit('Проверка качества…', 98);
 
+  // Auto-fix таблицы перед финальной валидацией
+  const { autoFixTables, validateDocxStructure } = await import('./tableValidator.js');
+  const fixedBlocks = autoFixTables(blocks);
+  blocks.length = 0;
+  blocks.push(...fixedBlocks);
+
+  // Валидация структуры DOCX
+  const validation = validateDocxStructure(blocks, outline);
+  if (!validation.ok) {
+    console.warn('[docx validation] errors:', validation.errors);
+    throw new Error(`Ошибка структуры документа: ${validation.errors.slice(0, 3).join('; ')}`);
+  }
+  if (validation.warnings.length) {
+    validation.warnings.forEach((w) => console.warn('[docx validation]', w));
+  }
+
   if (params.workType === 'vkr' || !params.workType) {
     assertVkrQuality({
       blocks,

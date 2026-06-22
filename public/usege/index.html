@@ -43,10 +43,29 @@
       overflow: hidden;
       border: 1px solid #2d3139;
     }
-    th, td { padding: 0.65rem 1rem; text-align: left; border-bottom: 1px solid #2d3139; }
-    th { background: #22262f; color: #9aa0a6; font-weight: 500; font-size: 0.75rem; text-transform: uppercase; }
+    th, td {
+      padding: 0.75rem 1.25rem;
+      text-align: left;
+      border-bottom: 1px solid #2d3139;
+      border-right: 1px solid #2d3139;
+    }
+    th:last-child, td:last-child { border-right: none; }
+    th {
+      background: #22262f;
+      color: #9aa0a6;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
     tr:last-child td { border-bottom: none; }
-    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, monospace;
+      font-size: 0.8125rem;
+    }
     .model-name { font-family: ui-monospace, monospace; font-size: 0.8125rem; word-break: break-all; }
     .err { color: #f28b82; padding: 1rem; background: #3c1f1f; border-radius: 8px; }
     .empty { color: #9aa0a6; font-style: italic; }
@@ -95,7 +114,7 @@
         h += '<tr>';
         r.forEach((c, i) => {
           const cls = i > 0 ? ' class="num"' : '';
-          h += '<td' + cls + '>' + c + '</td>';
+          h += '<td' + cls + '>' + (c === '' ? '—' : c) + '</td>';
         });
         h += '</tr>';
       });
