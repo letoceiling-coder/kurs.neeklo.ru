@@ -1,5 +1,7 @@
 import { isPedagogyDomain } from './workDomain.js';
 import { containsBannedPhrase } from './dataIntegrity.js';
+import { hasMarkdownTableLeak, stripMarkdownTableLeaksInBlocks } from './blockTools.js';
+import { VKR_REQUIREMENTS } from './vkrCompliance.js';
 
 const IT_LEAK_RE = /\b(bpmn|uml|swot|erp|api[\s-]?gateway|бизнес[\s-]?процесс|rusprofile|audit-it|мал\w*\s+бизнес|архитектур\w*\s+(систем|модел|решени))/i;
 
@@ -38,9 +40,9 @@ export function auditVkrDocument({ blocks, outline, research, cfg, sources }) {
   const h1 = blocks.filter((b) => b.kind === 'h1').map((b) => b.text);
   const chapterConclusions = (plain.match(/выводы по главе/gi) || []).length;
   const pedagogy = isPedagogyDomain(research?.domain);
-  const minRefs = cfg?.minRefs ?? 28;
-  const minTables = cfg?.minTables ?? 3;
-  const minWords = pedagogy ? 9000 : 7000;
+  const minRefs = cfg?.minRefs ?? VKR_REQUIREMENTS.minRefs;
+  const minTables = cfg?.minTables ?? VKR_REQUIREMENTS.minTables;
+  const minWords = cfg?.minWords ?? (VKR_REQUIREMENTS.minPages * VKR_REQUIREMENTS.wordsPerPage);
 
   const issues = [];
 
@@ -84,7 +86,7 @@ export function auditVkrDocument({ blocks, outline, research, cfg, sources }) {
   if (banned) issues.push(`AI-клише в ${banned} абзаце(ах)`);
 
   const tableLeaks = blocks.filter(
-    (b) => b.kind === 'p' && /\|[^|\n]{3,}\|[^|\n]{3,}\|/.test(b.text || ''),
+    (b) => b.kind === 'p' && hasMarkdownTableLeak(b.text),
   ).length;
   if (tableLeaks) issues.push(`Markdown-таблицы в тексте: ${tableLeaks} абзац(ов)`);
 
@@ -103,7 +105,17 @@ export function auditVkrDocument({ blocks, outline, research, cfg, sources }) {
   };
 }
 
+/** Автоисправление блоков перед аудитом (markdown-таблицы в абзацах). */
+export function autoFixBlocksForAudit(blocks) {
+  return stripMarkdownTableLeaksInBlocks(blocks);
+}
+
 export function assertVkrQuality(ctx) {
+  const fixedBlocks = autoFixBlocksForAudit(ctx.blocks);
+  if (fixedBlocks !== ctx.blocks) {
+    ctx.blocks.length = 0;
+    ctx.blocks.push(...fixedBlocks);
+  }
   const report = auditVkrDocument(ctx);
   console.log('[audit]', JSON.stringify(report.stats), report.pass ? 'PASS' : 'FAIL');
   if (!report.pass) {

@@ -29,7 +29,7 @@ export const WORK_TYPES = {
     chapters: 3,
     subsectionsPerChapter: 3,
     refsCount: 42,
-    minRefs: 28,
+    minRefs: 40,
     minTables: 3,
     wordsPerSubsection: 2800,
     wordsIntro: 1200,
@@ -502,14 +502,15 @@ ${contextPrompt(research)}`;
   return ensureIntroStructure(lastParas, outline, research);
 }
 
-/** Подогнать объём и названия параграфов под педагогический эталон. */
+/** Подогнать объём под требования ВКР: ≥60 стр., ~25 стр. на главу. */
 function applyPedagogyProfile(cfg, outline) {
   const next = {
     ...cfg,
-    wordsPerSubsection: 1500,
-    wordsIntro: 1100,
-    wordsConclusion: 950,
-    chunkWords: 1200,
+    wordsPerSubsection: 2500,
+    wordsIntro: 900,
+    wordsConclusion: 900,
+    chunkWords: 1400,
+    minRefs: 40,
   };
   if (outline?.chapters?.[1]?.subsections?.length >= 3) {
     const ch2 = outline.chapters[1];
@@ -1168,7 +1169,7 @@ export async function generateDocument(params, onProgress = () => {}) {
     }
   }
 
-  emit('Готово!', 100);
+  emit('Проверка качества…', 98);
 
   if (params.workType === 'vkr' || !params.workType) {
     assertVkrQuality({
@@ -1179,6 +1180,8 @@ export async function generateDocument(params, onProgress = () => {}) {
       sources: { verified: refs.verified, total: refs.list.length },
     });
   }
+
+  emit('Готово!', 100);
 
   return {
     outline,
