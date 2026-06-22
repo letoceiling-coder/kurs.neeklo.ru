@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { generateOutline, generateDocument, WORK_TYPES } from './src/generator.js';
-import { buildDocx } from './src/docx.js';
+import { buildDocx, buildValidatedDocx } from './src/docx.js';
 import { buildPdf } from './src/pdf.js';
 import { buildFullHtml } from './src/fullDocument.js';
 import { blocksToHtml } from './src/blocksToHtml.js';
@@ -207,7 +207,7 @@ app.post('/api/export/docx', async (req, res) => {
   try {
     const { html, meta, cfg, outline, workType } = req.body || {};
     const blocks = htmlToBlocks(html || '');
-    const buf = await buildDocx({
+    const buf = await buildValidatedDocx({
       blocks,
       meta: meta || {},
       cfg: cfg || { label: 'Выпускная квалификационная работа', hasTaskSheet: true },
@@ -269,7 +269,7 @@ app.get('/api/documents/:id/export/docx', async (req, res) => {
     const doc = getDocument(req.params.id);
     if (!doc) return res.status(404).json({ error: 'Документ не найден' });
     const blocks = htmlToBlocks(doc.html || '');
-    const buf = await buildDocx({
+    const buf = await buildValidatedDocx({
       blocks,
       meta: doc.meta || {},
       cfg: doc.cfg || { label: 'Выпускная квалификационная работа', hasTaskSheet: true },

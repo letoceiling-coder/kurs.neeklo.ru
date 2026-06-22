@@ -7,6 +7,7 @@ import { getWorkLabel, resolveDocumentMeta } from './templates.js';
 import { numberBlocks, formatTableCaption, formatFigureCaption } from './gostNumbering.js';
 import { buildTableBlock } from './docxTableBuilder.js';
 import { validateDocxStructure, autoFixTables } from './tableValidator.js';
+import { validateDocxBuffer } from './docxPostValidation.js';
 
 const FONT = 'Times New Roman';
 const SIZE_MAIN = 28;   // 14pt (half-points)
@@ -263,4 +264,40 @@ export async function buildDocx(doc) {
   });
 
   return Packer.toBuffer(document);
+}
+
+/**
+ * Экспорт DOCX с двухэтапной проверкой: чистка таблиц перед сборкой
+ * и пост-валидация готового буфера (повторное «открытие» и анализ таблиц).
+ */
+export async function buildValidatedDocx(doc) {
+  const cleaned = autoFixTables(doc.blocks || []);
+  const safeDoc = { ...doc, blocks: cleaned };
+
+  let buffer = await buildDocx(safeDoc);
+
+  try {
+    const report = await validateDocxBuffer(buffer, cleaned);
+    if (!report.ok) {
+      console.warn('[docx post-validation] ошибки:', report.errors);
+      // Повторная попытка после повторной чистки
+      const recleaned = autoFixTables(cleaned);
+      buffer = await buildDocx({ ...doc, blocks: recleaned });
+      const retry = await validateDocxBuffer(buffer, recleaned);
+      if (!retry.ok) {
+        console.warn('[docx post-validation] остались ошибки после авто-исправления:', retry.errors);
+      } else {
+        console.log('[docx post-validation] исправлено со второй попытки');
+      }
+    } else {
+      console.log(`[docx post-validation] OK: таблиц ${report.stats.tablesInDocx}`);
+    }
+    if (report.warnings?.length) {
+      report.warnings.forEach((w) => console.warn('[docx post-validation]', w));
+    }
+  } catch (e) {
+    console.warn('[docx post-validation] пропущена:', e.message);
+  }
+
+  return buffer;
 }

@@ -96,9 +96,10 @@ body { margin: 0; font-family: 'Times New Roman', Times, serif; font-size: 14pt;
 .doc-body p.fcap { text-indent: 0; text-align: center; margin: 4px 0 14px; font-size: 12pt; }
 .doc-body p.fig { text-indent: 0; text-align: center; margin: 8px 0 4px; }
 .doc-body p.fig img { max-width: 100%; height: auto; }
-.doc-body table { width: 100%; border-collapse: collapse; margin: 4px 0 14px; font-size: 12pt; }
-.doc-body th, .doc-body td { border: 1px solid #000; padding: 4px 8px; vertical-align: top; }
-.doc-body th { font-weight: bold; text-align: center; background: #f5f5f5; }
+.doc-body table { width: 100%; border-collapse: collapse; margin: 4px 0 14px; font-size: 12pt; table-layout: fixed; }
+.doc-body th, .doc-body td { border: 1px solid #000; padding: 4px 8px; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
+.doc-body th { font-weight: bold; text-align: center; background: #f0f0f0; }
+.doc-body td { text-align: left; }
 .toc-title { font-size: 16pt; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 16px; }
 .toc-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; font-size: 14pt; }
 .toc-h1 { font-weight: bold; margin-top: 6px; }

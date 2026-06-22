@@ -1217,7 +1217,18 @@ export async function generateDocument(params, onProgress = () => {}) {
   blocks.length = 0;
   blocks.push(...fixedBlocks);
 
-  // Валидация структуры DOCX
+  // ЭТАП 1: контентная проверка (антифабрикация)
+  const { validateContent } = await import('./contentValidation.js');
+  const content = validateContent(blocks, { strict: false });
+  if (!content.ok) {
+    console.warn('[content validation] errors:', content.errors);
+    throw new Error(`Недостоверные данные: ${content.errors.slice(0, 3).join('; ')}`);
+  }
+  if (content.warnings.length) {
+    content.warnings.slice(0, 10).forEach((w) => console.warn('[content validation]', w));
+  }
+
+  // ЭТАП 2 (предв.): валидация структуры таблиц/документа
   const validation = validateDocxStructure(blocks, outline);
   if (!validation.ok) {
     console.warn('[docx validation] errors:', validation.errors);
