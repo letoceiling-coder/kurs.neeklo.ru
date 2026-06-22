@@ -71,6 +71,9 @@ async function main() {
       body: JSON.stringify({ topic: TOPIC, workType: 'vkr' }),
     });
     prevReq = { topic: TOPIC, workType: 'vkr', outline, meta: { templateId: 'synergy' }, model: 'deepseek/deepseek-v4-flash' };
+  } else {
+    prevReq.model = prevReq.model || 'deepseek/deepseek-v4-flash';
+    if (/gemini/i.test(prevReq.model)) prevReq.model = 'deepseek/deepseek-v4-flash';
   }
 
   console.log('Запуск генерации:', prevReq.topic?.slice(0, 60) + '…');
